@@ -1,0 +1,300 @@
+/* Modal Container */
+.modal {
+  backdrop-filter: blur(8px);
+}
+
+.modalPaper {
+  border-radius: 24px !important;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15) !important;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Modal Header */
+.modalHeader {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  padding: 24px 32px 16px 32px;
+  text-align: center;
+  position: relative;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.modalTitle {
+  font-weight: 700;
+  color: #212529;
+  margin: 0;
+  font-size: 1.5rem;
+  letter-spacing: -0.02em;
+}
+
+.closeButton {
+  position: absolute !important;
+  right: 16px;
+  top: 16px;
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(10px);
+  border-radius: 50% !important;
+  width: 40px !important;
+  height: 40px !important;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.closeButton:hover {
+  background-color: #ffffff !important;
+  transform: scale(1.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.closeIcon {
+  color: #6c757d;
+  font-size: 20px;
+}
+
+/* Modal Content */
+.modalContent {
+  padding: 32px !important;
+  background: #ffffff;
+}
+
+/* Section Headers */
+.sectionHeader {
+  text-align: center;
+  margin-bottom: 24px;
+  position: relative;
+}
+
+.sectionTitle {
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 8px;
+  font-size: 1.1rem;
+}
+
+.sectionSubtitle {
+  color: #6c757d;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.sectionDivider {
+  margin: 32px 0;
+  position: relative;
+  text-align: center;
+}
+
+.dividerLine {
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, #dee2e6 50%, transparent 100%);
+  border: none;
+  margin: 0;
+}
+
+.dividerText {
+  background: #ffffff;
+  padding: 0 16px;
+  color: #6c757d;
+  font-size: 0.85rem;
+  font-weight: 500;
+  position: relative;
+  top: -10px;
+}
+
+/* Google Login Button */
+.googleButton {
+  width: 100%;
+  padding: 12px 24px !important;
+  border-radius: 12px !important;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%) !important;
+  border: 2px solid #e9ecef !important;
+  color: #495057 !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  text-transform: none !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.googleButton:hover {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+  border-color: #dee2e6 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.googleButton::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.5s ease;
+}
+
+.googleButton:hover::before {
+  left: 100%;
+}
+
+.googleIcon {
+  margin-right: 12px;
+  font-size: 20px;
+  color: #4285f4;
+}
+
+/* Email Form */
+.emailForm {
+  margin-top: 16px;
+}
+
+.formField {
+  margin-bottom: 20px;
+}
+
+.inputField {
+  width: 100%;
+  padding: 16px 20px !important;
+  border-radius: 12px !important;
+  border: 2px solid #e9ecef !important;
+  background: #ffffff !important;
+  font-size: 1rem !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.inputField:focus {
+  border-color: #6c757d !important;
+  box-shadow: 0 4px 20px rgba(108, 117, 125, 0.15);
+  outline: none;
+}
+
+.inputField::placeholder {
+  color: #adb5bd;
+}
+
+.submitButton {
+  width: 100%;
+  padding: 16px 24px !important;
+  border-radius: 12px !important;
+  background: linear-gradient(135deg, #6c757d 0%, #495057 100%) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  text-transform: none !important;
+  border: none !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.submitButton:hover {
+  background: linear-gradient(135deg, #495057 0%, #343a40 100%) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(108, 117, 125, 0.4);
+}
+
+.submitButton::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.submitButton:hover::before {
+  left: 100%;
+}
+
+/* Toggle Button */
+.toggleButton {
+  text-align: center;
+  margin-top: 20px;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #6c757d;
+  font-weight: 500;
+  border: 1px solid transparent;
+}
+
+.toggleButton:hover {
+  background: rgba(108, 117, 125, 0.05);
+  color: #495057;
+  border-color: #e9ecef;
+}
+
+.toggleIcon {
+  margin-left: 8px;
+  font-size: 16px;
+  transition: transform 0.3s ease;
+}
+
+.toggleButton:hover .toggleIcon {
+  transform: translateX(4px);
+}
+
+/* Success/Error Messages */
+.message {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.successMessage {
+  background: rgba(40, 167, 69, 0.1);
+  color: #28a745;
+  border: 1px solid rgba(40, 167, 69, 0.2);
+}
+
+.errorMessage {
+  background: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+  border: 1px solid rgba(220, 53, 69, 0.2);
+}
+
+/* Loading State */
+.loadingButton {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.loadingSpinner {
+  margin-right: 8px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .modalPaper {
+    margin: 16px;
+    border-radius: 16px !important;
+  }
+  
+  .modalHeader {
+    padding: 20px 24px 12px 24px;
+  }
+  
+  .modalContent {
+    padding: 24px !important;
+  }
+  
+  .modalTitle {
+    font-size: 1.3rem;
+  }
+} 

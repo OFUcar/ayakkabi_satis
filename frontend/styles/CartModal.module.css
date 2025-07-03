@@ -1,0 +1,174 @@
+.dialog {
+  border-radius: 16px !important;
+  overflow: hidden;
+}
+
+.dialogTitle {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  padding: 20px 24px !important;
+}
+
+.cartIcon {
+  color: #6c757d;
+  font-size: 24px;
+}
+
+.dialogContent {
+  padding: 24px !important;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.emptyCart {
+  text-align: center;
+  padding: 48px 24px;
+}
+
+.emptyCartIcon {
+  font-size: 64px;
+  color: #dee2e6;
+  margin-bottom: 16px;
+}
+
+.cartItem {
+  position: relative;
+  margin-bottom: 16px;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08) !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+  transition: all 0.3s ease;
+}
+
+.cartItem:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12) !important;
+  transform: translateY(-2px);
+}
+
+.itemImage {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  max-width: 100%;
+  border-radius: 8px;
+}
+
+.itemContent {
+  padding: 12px !important;
+}
+
+.categoryChip {
+  background-color: #f8f9fa !important;
+  color: #6c757d !important;
+  font-size: 0.75rem !important;
+}
+
+.quantitySection {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.quantityButton {
+  background-color: #f8f9fa !important;
+  border: 1px solid #e9ecef !important;
+  color: #6c757d !important;
+  transition: all 0.3s ease;
+}
+
+.quantityButton:hover {
+  background-color: #e9ecef !important;
+  transform: scale(1.1);
+}
+
+.quantityInput {
+  width: 60px;
+}
+
+.quantityInput input {
+  text-align: center;
+  font-weight: 600;
+}
+
+.deleteButton {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background-color: rgba(220, 53, 69, 0.1) !important;
+  color: #dc3545 !important;
+  transition: all 0.3s ease;
+}
+
+.deleteButton:hover {
+  background-color: #dc3545 !important;
+  color: white !important;
+  transform: scale(1.1);
+}
+
+.divider {
+  margin: 24px 0;
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+.summary {
+  background: rgba(248, 249, 250, 0.5);
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.dialogActions {
+  padding: 20px 24px !important;
+  background: rgba(248, 249, 250, 0.5);
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  gap: 12px;
+}
+
+.checkoutButton {
+  background: linear-gradient(45deg, #6c757d 30%, #495057 90%) !important;
+  color: white !important;
+  padding: 12px 32px !important;
+  border-radius: 25px !important;
+  font-weight: 600 !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3) !important;
+}
+
+.checkoutButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(108, 117, 125, 0.4) !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dialogContent {
+    padding: 16px !important;
+  }
+  
+  .cartItem {
+    margin-bottom: 12px;
+  }
+  
+  .itemImage {
+    height: 60px;
+  }
+  
+  .quantitySection {
+    padding: 8px;
+  }
+  
+  .quantityInput {
+    width: 50px;
+  }
+  
+  .dialogActions {
+    padding: 16px !important;
+    flex-direction: column;
+  }
+  
+  .checkoutButton {
+    width: 100%;
+  }
+} 
