@@ -12,7 +12,8 @@ import {
   serverTimestamp,
   writeBatch
 } from 'firebase/firestore';
-import { db } from '../firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '../firebase';
 
 // Mevcut ürünlerdeki resim URL'lerini düzelt
 export const fixProductImages = async () => {
@@ -467,5 +468,18 @@ export const addressService = {
       console.error('Adres silinemedi:', error);
       throw error;
     }
+  }
+};
+
+// Firebase Storage ile resim yükleme
+export const uploadImage = async (file) => {
+  try {
+    const storageRef = ref(storage, `products/${Date.now()}_${file.name}`);
+    const snapshot = await uploadBytes(storageRef, file);
+    const downloadURL = await getDownloadURL(snapshot.ref);
+    return downloadURL;
+  } catch (error) {
+    console.error('Resim yükleme hatası:', error);
+    throw error;
   }
 }; 
