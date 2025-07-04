@@ -110,30 +110,17 @@ const ProductFormModal = ({ open, onClose, onSave, product }) => {
 
   const uploadImagesAndGetUrls = async (images) => {
     try {
-      // Sadece File nesnelerini yükle, string olanlar zaten URL
       const uploadPromises = images.map(async (img) => {
         if (typeof img === 'string') return img;
         if (img instanceof File) {
-          // Backend API'si üzerinden dosya yükleme
-          const formData = new FormData();
-          formData.append('image', img);
-          
-          const response = await fetch('http://localhost:5000/api/upload/upload-image-local', {
-            method: 'POST',
-            body: formData,
-          });
-          
-          if (!response.ok) {
-            throw new Error(`Dosya yükleme hatası: ${response.statusText}`);
-          }
-          
-          const result = await response.json();
-          return result.imageUrl;
+          // Storage'a yükle
+          const storageRef = ref(storage, `products/${Date.now()}_${img.name}`);
+          await uploadBytes(storageRef, img);
+          const url = await getDownloadURL(storageRef);
+          return url;
         }
         return null;
       });
-      
-      // Tüm yüklemeler tamamlanınca URL dizisini döndür
       return (await Promise.all(uploadPromises)).filter(Boolean);
     } catch (error) {
       console.error('Dosya yükleme hatası:', error);
