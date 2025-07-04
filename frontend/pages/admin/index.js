@@ -23,6 +23,8 @@ import {
 } from '@mui/icons-material';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { useAuth } from '../../contexts/AuthContext';
+import { getDocs, collection, query, orderBy, limit } from "firebase/firestore";
+import { db } from "../../firebase";
 
 const StatCard = ({ title, value, icon, color = 'primary.main' }) => (
   <Paper 
@@ -76,35 +78,26 @@ const AdminDashboard = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const idToken = await user?.getIdToken();
-      
-      // İstatistikleri getir
-      const statsResponse = await fetch('http://localhost:5000/api/admin/stats', {
-        headers: {
-          'Authorization': `Bearer ${idToken}`
-        }
+      // Firestore'dan verileri çek
+      const productsSnap = await getDocs(collection(db, "products"));
+      const ordersSnap = await getDocs(collection(db, "orders"));
+      const usersSnap = await getDocs(collection(db, "users"));
+
+      setStats({
+        totalSales: ordersSnap.docs.reduce((sum, doc) => sum + (doc.data().total || 0), 0),
+        totalOrders: ordersSnap.size,
+        totalProducts: productsSnap.size,
+        totalCustomers: usersSnap.size
       });
 
-      // Son siparişleri getir
-      const ordersResponse = await fetch('http://localhost:5000/api/admin/recent-orders', {
-        headers: {
-          'Authorization': `Bearer ${idToken}`
-        }
-      });
-
-      if (statsResponse.ok) {
-        const statsData = await statsResponse.json();
-        setStats(statsData);
-      }
-
-      if (ordersResponse.ok) {
-        const ordersData = await ordersResponse.json();
-        setRecentOrders(ordersData);
-      }
+      // Son siparişler
+      const recentOrdersQuery = query(collection(db, "orders"), orderBy("createdAt", "desc"), limit(5));
+      const recentOrdersSnap = await getDocs(recentOrdersQuery);
+      setRecentOrders(recentOrdersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      setError(null);
     } catch (error) {
       console.error('Dashboard veri getirme hatası:', error);
       setError('Veriler yüklenirken hata oluştu');
-      
       // Demo veriler
       setStats({
         totalSales: 12450,
@@ -112,7 +105,6 @@ const AdminDashboard = () => {
         totalProducts: 89,
         totalCustomers: 234
       });
-      
       setRecentOrders([
         {
           id: '1',

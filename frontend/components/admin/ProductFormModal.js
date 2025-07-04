@@ -22,6 +22,8 @@ import { AddPhotoAlternate as AddPhotoIcon, Close as CloseIcon } from '@mui/icon
 import { useDropzone } from 'react-dropzone';
 import { storage } from '../../firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { getDocs, collection } from "firebase/firestore";
+import { db } from "../../firebase";
 
 const ProductFormModal = ({ open, onClose, onSave, product }) => {
   const [formData, setFormData] = useState({});
@@ -36,10 +38,10 @@ const ProductFormModal = ({ open, onClose, onSave, product }) => {
     if (!open) return;
     const fetchDropdownData = async () => {
       try {
-        const catResponse = await fetch('http://localhost:5000/api/categories');
-        const brandResponse = await fetch('http://localhost:5000/api/brands');
-        if (catResponse.ok) setCategories(await catResponse.json());
-        if (brandResponse.ok) setBrands(await brandResponse.json());
+        const catSnap = await getDocs(collection(db, "categories"));
+        const brandSnap = await getDocs(collection(db, "brands"));
+        setCategories(catSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        setBrands(brandSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       } catch (error) {
         console.error("Kategori/Marka verisi çekilemedi:", error);
       }

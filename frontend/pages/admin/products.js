@@ -6,6 +6,8 @@ import AdminLayout from '../../components/admin/AdminLayout';
 import ProductFormModal from '../../components/admin/ProductFormModal';
 import { useAuth } from '../../contexts/AuthContext';
 import { useRouter } from 'next/router';
+import { getDocs, collection, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
+import { db } from "../../firebase";
 
 const ProductsPage = () => {
   const { user } = useAuth();
@@ -27,23 +29,13 @@ const ProductsPage = () => {
   }, [user]);
 
   const fetchProducts = async () => {
-    if (!user) return;
     try {
       setLoading(true);
       setError(null);
-      const idToken = await user.getIdToken();
-      const response = await fetch('http://localhost:5000/api/admin/products', {
-        headers: {
-          'Authorization': `Bearer ${idToken}`
-        }
-      });
-      if (!response.ok) {
-        throw new Error('Ürünler yüklenemedi.');
-      }
-      const data = await response.json();
-      setProducts(data);
+      const productsSnap = await getDocs(collection(db, "products"));
+      setProducts(productsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     } catch (err) {
-      setError(err.message);
+      setError('Ürünler yüklenemedi.');
     } finally {
       setLoading(false);
     }
@@ -52,20 +44,10 @@ const ProductsPage = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Bu ürünü silmek istediğinizden emin misiniz?')) {
       try {
-        const idToken = await user.getIdToken();
-        const response = await fetch(`http://localhost:5000/api/admin/products/${id}`, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${idToken}`
-          }
-        });
-        if (!response.ok) {
-          throw new Error('Ürün silinemedi.');
-        }
-        // Listeyi yenile
+        await deleteDoc(doc(db, "products", id));
         fetchProducts();
       } catch (err) {
-        alert(err.message);
+        alert('Ürün silinemedi.');
       }
     }
   };
@@ -88,40 +70,16 @@ const ProductsPage = () => {
   
   const handleSaveProduct = async (productData) => {
     try {
-      const idToken = await user.getIdToken();
-      let response;
       if (productData.id) {
-        response = await fetch(`http://localhost:5000/api/admin/products/${productData.id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${idToken}`
-          },
-          body: JSON.stringify(productData)
-        });
+        const { id, ...updateData } = productData;
+        await updateDoc(doc(db, "products", id), updateData);
       } else {
-        response = await fetch('http://localhost:5000/api/admin/products', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${idToken}`
-          },
-          body: JSON.stringify(productData)
-        });
-      }
-      if (!response.ok) {
-        let msg = 'Ürün kaydedilemedi.';
-        try {
-          const err = await response.json();
-          if (err.error) msg = err.error;
-          if (err.fsError) msg += ' (Dosya: ' + err.fsError + ')';
-        } catch {}
-        throw new Error(msg);
+        await addDoc(collection(db, "products"), productData);
       }
       fetchProducts();
       handleCloseModal();
     } catch (err) {
-      alert(err.message);
+      alert('Ürün kaydedilemedi.');
     }
   };
 
@@ -183,15 +141,7 @@ const ProductsPage = () => {
               onChange={async (e) => {
                 const newActive = e.target.checked;
                 try {
-                  const idToken = await user.getIdToken();
-                  await fetch(`http://localhost:5000/api/admin/products/${params.id}`, {
-                    method: 'PUT',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      'Authorization': `Bearer ${idToken}`
-                    },
-                    body: JSON.stringify({ ...params.row, isActive: newActive })
-                  });
+                  await updateDoc(doc(db, "products", params.id), { isActive: newActive });
                   setProducts(products => products.map(p => p.id === params.id ? { ...p, isActive: newActive } : p));
                 } catch (err) {
                   alert('Durum güncellenemedi: ' + err.message);
@@ -313,13 +263,9 @@ const ProductsPage = () => {
                   if (!product) continue;
                   const discount = Number(discountValue);
                   const newPrice = Number(product.price) * (1 - discount / 100);
-                  await fetch(`http://localhost:5000/api/admin/products/${id}`, {
-                    method: 'PUT',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      'Authorization': `Bearer ${idToken}`
-                    },
-                    body: JSON.stringify({ ...product, discount, price: Number(newPrice.toFixed(2)) })
+                  await updateDoc(doc(db, "products", id), {
+                    discount,
+                    price: Number(newPrice.toFixed(2))
                   });
                 }
                 setDiscountModalOpen(false);

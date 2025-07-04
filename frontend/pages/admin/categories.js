@@ -4,6 +4,8 @@ import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 import { Edit as EditIcon, Delete as DeleteIcon, Add as AddIcon } from '@mui/icons-material';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { useAuth } from '../../contexts/AuthContext';
+import { getDocs, collection, addDoc, deleteDoc, doc, serverTimestamp } from "firebase/firestore";
+import { db } from "../../firebase";
 
 const CategoriesPage = () => {
   const { user } = useAuth();
@@ -19,19 +21,13 @@ const CategoriesPage = () => {
   }, [user]);
 
   const fetchCategories = async () => {
-    if (!user) return;
     try {
       setLoading(true);
       setError(null);
-      const idToken = await user.getIdToken();
-      const response = await fetch('http://localhost:5000/api/admin/categories', {
-        headers: { 'Authorization': `Bearer ${idToken}` }
-      });
-      if (!response.ok) throw new Error('Kategoriler yüklenemedi.');
-      const data = await response.json();
-      setCategories(data);
+      const categoriesSnap = await getDocs(collection(db, "categories"));
+      setCategories(categoriesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     } catch (err) {
-      setError(err.message);
+      setError('Kategoriler yüklenemedi.');
     } finally {
       setLoading(false);
     }
@@ -50,20 +46,14 @@ const CategoriesPage = () => {
     if (!newCategory.name) return;
     try {
       setSaving(true);
-      const idToken = await user.getIdToken();
-      const response = await fetch('http://localhost:5000/api/admin/categories', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${idToken}`
-        },
-        body: JSON.stringify({ name: newCategory.name })
+      await addDoc(collection(db, "categories"), {
+        name: newCategory.name,
+        createdAt: serverTimestamp()
       });
-      if (!response.ok) throw new Error('Kategori eklenemedi.');
       setIsModalOpen(false);
       fetchCategories();
     } catch (err) {
-      alert(err.message);
+      alert('Kategori eklenemedi.');
     } finally {
       setSaving(false);
     }
@@ -72,15 +62,10 @@ const CategoriesPage = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('Bu kategoriyi silmek istediğinizden emin misiniz?')) return;
     try {
-      const idToken = await user.getIdToken();
-      const response = await fetch(`http://localhost:5000/api/admin/categories/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${idToken}` }
-      });
-      if (!response.ok) throw new Error('Kategori silinemedi.');
+      await deleteDoc(doc(db, "categories", id));
       fetchCategories();
     } catch (err) {
-      alert(err.message);
+      alert('Kategori silinemedi.');
     }
   };
 

@@ -29,6 +29,8 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import { useRouter } from 'next/router';
+import { getDoc, updateDoc, doc } from "firebase/firestore";
+import { db } from "../firebase";
 
 export default function AddressesPage() {
   const { user, loading } = useAuth();
@@ -48,6 +50,8 @@ export default function AddressesPage() {
   });
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
 
   // Kullanıcı giriş yapmamışsa ana sayfaya yönlendir
   useEffect(() => {
@@ -66,29 +70,15 @@ export default function AddressesPage() {
   const fetchAddresses = async () => {
     try {
       setLoadingAddresses(true);
-      const token = await user.getIdToken();
-      console.log('Adresler fetch ediliyor, token:', token ? 'var' : 'yok');
-      
-      const response = await fetch('http://localhost:5000/api/addresses', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      console.log('Adres response status:', response.status);
-      
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Adresler başarıyla alındı:', data);
-        setAddresses(data);
+      setError(null);
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (userDoc.exists()) {
+        setAddresses(userDoc.data().addresses || []);
       } else {
-        const errorData = await response.json();
-        console.error('Adres fetch hatası:', errorData);
-        setError('Adresler yüklenirken hata oluştu');
+        setAddresses([]);
       }
-    } catch (error) {
-      console.error('Adres fetch catch hatası:', error);
-      setError('Adresler yüklenirken hata oluştu');
+    } catch (err) {
+      setError('Adresler yüklenemedi.');
     } finally {
       setLoadingAddresses(false);
     }
@@ -132,56 +122,42 @@ export default function AddressesPage() {
     });
   };
 
-  const handleSubmit = async () => {
+  const handleSaveAddress = async (address) => {
     try {
-      const token = await user.getIdToken();
-      const url = editingAddress 
-        ? `http://localhost:5000/api/addresses/${editingAddress.id}`
-        : 'http://localhost:5000/api/addresses';
-      
-      const response = await fetch(url, {
-        method: editingAddress ? 'PUT' : 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(formData)
-      });
-
-      if (response.ok) {
-        setSuccess(editingAddress ? 'Adres güncellendi' : 'Adres eklendi');
-        fetchAddresses();
-        handleCloseModal();
+      setSaving(true);
+      const userRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userRef);
+      let addresses = userDoc.exists() ? userDoc.data().addresses || [] : [];
+      if (editingAddress) {
+        // Güncelle
+        addresses = addresses.map(a => a.id === editingAddress.id ? { ...a, ...address } : a);
       } else {
-        setError('Adres kaydedilirken hata oluştu');
+        // Ekle
+        addresses = [...addresses, { ...address, id: Date.now().toString() }];
       }
-    } catch (error) {
-      setError('Adres kaydedilirken hata oluştu');
+      await updateDoc(userRef, { addresses });
+      setIsModalOpen(false);
+      fetchAddresses();
+    } catch (err) {
+      alert('Adres kaydedilemedi.');
+    } finally {
+      setSaving(false);
     }
   };
 
-  const handleDelete = async (addressId) => {
-    if (!window.confirm('Bu adresi silmek istediğinizden emin misiniz?')) {
-      return;
-    }
-
+  const handleDeleteAddress = async (id) => {
     try {
-      const token = await user.getIdToken();
-      const response = await fetch(`http://localhost:5000/api/addresses/${addressId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        setSuccess('Adres silindi');
-        fetchAddresses();
-      } else {
-        setError('Adres silinirken hata oluştu');
-      }
-    } catch (error) {
-      setError('Adres silinirken hata oluştu');
+      setDeletingId(id);
+      const userRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userRef);
+      let addresses = userDoc.exists() ? userDoc.data().addresses || [] : [];
+      addresses = addresses.filter(a => a.id !== id);
+      await updateDoc(userRef, { addresses });
+      fetchAddresses();
+    } catch (err) {
+      alert('Adres silinemedi.');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -281,7 +257,7 @@ export default function AddressesPage() {
                       <IconButton
                         size="small"
                         color="error"
-                        onClick={() => handleDelete(address.id)}
+                        onClick={() => handleDeleteAddress(address.id)}
                       >
                         <DeleteIcon />
                       </IconButton>
@@ -362,7 +338,7 @@ export default function AddressesPage() {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseModal}>İptal</Button>
-          <Button onClick={handleSubmit} variant="contained">
+          <Button onClick={() => handleSaveAddress(formData)} variant="contained">
             {editingAddress ? 'Güncelle' : 'Ekle'}
           </Button>
         </DialogActions>

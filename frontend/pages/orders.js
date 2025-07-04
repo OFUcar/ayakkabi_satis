@@ -34,6 +34,8 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import { useRouter } from 'next/router';
+import { getDocs, collection } from "firebase/firestore";
+import { db } from "../firebase";
 
 export default function OrdersPage() {
   const { user, loading } = useAuth();
@@ -63,29 +65,11 @@ export default function OrdersPage() {
   const fetchOrders = async () => {
     try {
       setLoadingOrders(true);
-      const token = await user.getIdToken();
-      console.log('Siparişler fetch ediliyor, token:', token ? 'var' : 'yok');
-      
-      const response = await fetch('http://localhost:5000/api/orders', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      console.log('Sipariş response status:', response.status);
-      
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Siparişler başarıyla alındı:', data);
-        setOrders(data);
-      } else {
-        const errorData = await response.json();
-        console.error('Sipariş fetch hatası:', errorData);
-        setError('Siparişler yüklenirken hata oluştu');
-      }
-    } catch (error) {
-      console.error('Sipariş fetch catch hatası:', error);
-      setError('Siparişler yüklenirken hata oluştu');
+      setError(null);
+      const ordersSnap = await getDocs(collection(db, "orders"));
+      setOrders(ordersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    } catch (err) {
+      setError('Siparişler yüklenemedi.');
     } finally {
       setLoadingOrders(false);
     }

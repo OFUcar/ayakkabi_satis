@@ -35,6 +35,8 @@ import {
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { useAuth } from '../../contexts/AuthContext';
+import { getDocs, collection, updateDoc, doc } from "firebase/firestore";
+import { db } from "../../firebase";
 
 const UsersPage = () => {
   const { user } = useAuth();
@@ -54,23 +56,13 @@ const UsersPage = () => {
   }, [user]);
 
   const fetchUsers = async () => {
-    if (!user) return;
     try {
       setLoading(true);
       setError(null);
-      const idToken = await user.getIdToken();
-      const response = await fetch('http://localhost:5000/api/admin/users', {
-        headers: {
-          'Authorization': `Bearer ${idToken}`
-        }
-      });
-      if (!response.ok) {
-        throw new Error('Kullanıcılar yüklenemedi.');
-      }
-      const data = await response.json();
-      setUsers(data);
+      const usersSnap = await getDocs(collection(db, "users"));
+      setUsers(usersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     } catch (err) {
-      setError(err.message);
+      setError('Kullanıcılar yüklenemedi.');
     } finally {
       setLoading(false);
     }
@@ -78,23 +70,10 @@ const UsersPage = () => {
 
   const handleRoleChange = async (id, newRole) => {
     try {
-      const idToken = await user.getIdToken();
-      const response = await fetch(`http://localhost:5000/api/admin/users/${id}/role`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${idToken}`
-        },
-        body: JSON.stringify({ role: newRole })
-      });
-
-      if (!response.ok) {
-        throw new Error('Rol güncellenemedi.');
-      }
-      // Kullanıcı listesini anında güncelle
+      await updateDoc(doc(db, "users", id), { role: newRole });
       setUsers(users.map(u => u.id === id ? { ...u, role: newRole } : u));
     } catch (err) {
-      alert(err.message);
+      alert('Rol güncellenemedi.');
     }
   };
 

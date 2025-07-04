@@ -5,6 +5,8 @@ import { Visibility as VisibilityIcon } from '@mui/icons-material';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { useAuth } from '../../contexts/AuthContext';
 import { useRouter } from 'next/router';
+import { getDocs, collection } from "firebase/firestore";
+import { db } from "../../firebase";
 
 const getStatusChipProps = (status) => {
   switch (status) {
@@ -33,24 +35,13 @@ const OrdersPage = () => {
   }, [user]);
 
   const fetchOrders = async () => {
-    if (!user) return;
     try {
       setLoading(true);
       setError(null);
-      const idToken = await user.getIdToken();
-      // Tüm siparişleri getirmek için yeni bir endpoint varsayıyoruz
-      const response = await fetch('http://localhost:5000/api/admin/orders', {
-        headers: {
-          'Authorization': `Bearer ${idToken}`
-        }
-      });
-      if (!response.ok) {
-        throw new Error('Siparişler yüklenemedi.');
-      }
-      const data = await response.json();
-      setOrders(data);
+      const ordersSnap = await getDocs(collection(db, "orders"));
+      setOrders(ordersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     } catch (err) {
-      setError(err.message);
+      setError('Siparişler yüklenemedi.');
     } finally {
       setLoading(false);
     }
