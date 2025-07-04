@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { auth } from "../firebase";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from "firebase/auth";
+import { userService } from '../services/firestoreService';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
@@ -45,17 +46,11 @@ export default function EmailAuthForm() {
         setMessage({ type: 'success', text: 'Başarıyla giriş yapıldı!' });
       } else {
         result = await createUserWithEmailAndPassword(auth, email, password);
-        // Yeni kullanıcıyı backend'e kaydet
-        await fetch("http://localhost:5000/api/users/add", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: email.split("@")[0],
-            email,
-            provider: "local",
-            providerId: result.user.uid,
-            role: "user"
-          })
+        // Yeni kullanıcıyı Firestore'a kaydet
+        await userService.createUser(result.user.uid, {
+          email,
+          displayName: email.split("@")[0],
+          role: "user"
         });
         setMessage({ type: 'success', text: 'Hesap başarıyla oluşturuldu!' });
       }

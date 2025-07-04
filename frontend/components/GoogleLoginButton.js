@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { auth, GoogleAuthProvider, signInWithPopup, signOut } from "../firebase";
 import { userService } from '../services/firestoreService';
-import { API_ENDPOINTS } from '../config/api';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';

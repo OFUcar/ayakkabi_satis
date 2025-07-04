@@ -58,8 +58,8 @@ import CartModal from '../components/CartModal';
 import styles from '../styles/Home.module.css';
 import { useRouter } from 'next/router';
 import NextLink from 'next/link';
-import { API_ENDPOINTS } from '../config/api';
 import { productService, categoryService } from '../services/firestoreService';
+import Head from 'next/head';
 
 const brands = ['Nike', 'Adidas', 'Puma', 'Converse', 'Vans', 'New Balance'];
 const types = ['Spor Ayakkabı', 'Koşu Ayakkabısı', 'Günlük Ayakkabı', 'Skate Ayakkabısı'];
