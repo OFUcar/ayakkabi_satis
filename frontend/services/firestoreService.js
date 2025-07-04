@@ -14,6 +14,144 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase';
 
+// Mevcut ürünlerdeki resim URL'lerini düzelt
+export const fixProductImages = async () => {
+  try {
+    const querySnapshot = await getDocs(collection(db, 'products'));
+    const batch = writeBatch(db);
+    
+    querySnapshot.docs.forEach((doc) => {
+      const data = doc.data();
+      if (data.images && data.images.length > 0) {
+        // localhost:5000 URL'lerini placeholder URL'lerle değiştir
+        const fixedImages = data.images.map(img => {
+          if (img.includes('localhost:5000')) {
+            // Ürün adına göre farklı placeholder resimler
+            const productName = data.name.toLowerCase();
+            if (productName.includes('nike')) {
+              return 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop';
+            } else if (productName.includes('adidas')) {
+              return 'https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=400&h=400&fit=crop';
+            } else if (productName.includes('vans')) {
+              return 'https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=400&h=400&fit=crop';
+            } else if (productName.includes('converse')) {
+              return 'https://images.unsplash.com/photo-1607522370275-f14206abe5d3?w=400&h=400&fit=crop';
+            } else if (productName.includes('puma')) {
+              return 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=400&h=400&fit=crop';
+            } else {
+              return 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=400&h=400&fit=crop';
+            }
+          }
+          return img;
+        });
+        
+        batch.update(doc.ref, { images: fixedImages });
+      }
+    });
+    
+    await batch.commit();
+    console.log('Ürün resimleri düzeltildi!');
+  } catch (error) {
+    console.error('Resim düzeltme hatası:', error);
+  }
+};
+
+// Test verileri ekleme fonksiyonları
+export const initializeTestData = async () => {
+  try {
+    // Kategoriler ekle
+    const categories = [
+      { name: 'Spor Ayakkabı' },
+      { name: 'Günlük Ayakkabı' },
+      { name: 'Koşu Ayakkabısı' },
+      { name: 'Skate Ayakkabısı' }
+    ];
+
+    for (const category of categories) {
+      await addDoc(collection(db, 'categories'), {
+        ...category,
+        createdAt: serverTimestamp()
+      });
+    }
+
+    // Ürünler ekle
+    const products = [
+      {
+        name: 'Nike Air Max 270',
+        description: 'Rahat ve şık spor ayakkabı',
+        price: 1299.99,
+        category: 'Spor Ayakkabı',
+        brand: 'Nike',
+        type: 'Spor Ayakkabı',
+        stock: { '40': 5, '41': 8, '42': 10, '43': 6 },
+        images: ['https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop'],
+        isActive: true,
+        discount: 0
+      },
+      {
+        name: 'Adidas Ultraboost 22',
+        description: 'Profesyonel koşu ayakkabısı',
+        price: 1899.99,
+        category: 'Koşu Ayakkabısı',
+        brand: 'Adidas',
+        type: 'Koşu Ayakkabısı',
+        stock: { '39': 3, '40': 7, '41': 9, '42': 5 },
+        images: ['https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=400&h=400&fit=crop'],
+        isActive: true,
+        discount: 10
+      },
+      {
+        name: 'Vans Old Skool',
+        description: 'Klasik skate ayakkabısı',
+        price: 899.99,
+        category: 'Skate Ayakkabısı',
+        brand: 'Vans',
+        type: 'Skate Ayakkabısı',
+        stock: { '38': 4, '39': 6, '40': 8, '41': 7 },
+        images: ['https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=400&h=400&fit=crop'],
+        isActive: true,
+        discount: 0
+      },
+      {
+        name: 'Converse Chuck Taylor',
+        description: 'Klasik canvas ayakkabı',
+        price: 699.99,
+        category: 'Günlük Ayakkabı',
+        brand: 'Converse',
+        type: 'Günlük Ayakkabı',
+        stock: { '36': 3, '37': 5, '38': 7, '39': 6 },
+        images: ['https://images.unsplash.com/photo-1607522370275-f14206abe5d3?w=400&h=400&fit=crop'],
+        isActive: true,
+        discount: 0
+      },
+      {
+        name: 'Puma RS-X',
+        description: 'Retro spor ayakkabı',
+        price: 1099.99,
+        category: 'Spor Ayakkabı',
+        brand: 'Puma',
+        type: 'Spor Ayakkabı',
+        stock: { '40': 4, '41': 6, '42': 8, '43': 5 },
+        images: ['https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=400&h=400&fit=crop'],
+        isActive: true,
+        discount: 15
+      }
+    ];
+
+    for (const product of products) {
+      await addDoc(collection(db, 'products'), {
+        ...product,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+    }
+
+    console.log('Test verileri başarıyla eklendi!');
+  } catch (error) {
+    console.error('Test verileri eklenirken hata:', error);
+  }
+};
+
 // Ürün servisleri
 export const productService = {
   // Tüm ürünleri getir
