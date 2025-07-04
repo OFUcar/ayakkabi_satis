@@ -10,7 +10,8 @@ import {
   where, 
   orderBy,
   serverTimestamp,
-  writeBatch
+  writeBatch,
+  setDoc
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../firebase';
@@ -277,7 +278,7 @@ export const userService = {
 
   async createUser(uid, userData) {
     try {
-      await updateDoc(doc(db, 'users', uid), {
+      await setDoc(doc(db, 'users', uid), {
         ...userData,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
