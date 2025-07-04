@@ -10,6 +10,8 @@ import {
 } from 'firebase/auth';
 import { auth } from '../firebase';
 import { useRouter } from 'next/router';
+import { API_ENDPOINTS } from '../config/api';
+import { userService } from '../services/firestoreService';
 
 const AuthContext = createContext();
 
@@ -38,35 +40,22 @@ export const AuthProvider = ({ children }) => {
             if (user) {
                 setUser(user);
 
-                // Adım 1: Kullanıcıyı Firestore ile senkronize et
+                // Kullanıcı verisini Firestore'dan al
                 try {
-                    const idToken = await user.getIdToken();
-                    await fetch('http://localhost:5000/api/user/sync', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${idToken}`
-                        },
-                        body: JSON.stringify({
+                    let userData = await userService.getUserById(user.uid);
+                    
+                    // Eğer kullanıcı Firestore'da yoksa oluştur
+                    if (!userData) {
+                        await userService.createUser(user.uid, {
                             email: user.email,
-                            displayName: user.displayName
-                        })
-                    });
-
-                    // Adım 2: Güncel kullanıcı verisini (rol dahil) çek
-                    const response = await fetch(`http://localhost:5000/api/user/${user.uid}`, {
-                        headers: {
-                            'Authorization': `Bearer ${idToken}`
-                        }
-                    });
-
-                    if (response.ok) {
-                        const data = await response.json();
-                        console.log("[DEBUG] Firestore'dan gelen kullanıcı verisi:", data);
-                        setUserData(data);
-                    } else {
-                        setUserData(null);
+                            displayName: user.displayName || user.email,
+                            role: 'user'
+                        });
+                        userData = await userService.getUserById(user.uid);
                     }
+                    
+                    console.log("[DEBUG] Firestore'dan gelen kullanıcı verisi:", userData);
+                    setUserData(userData);
                 } catch (error) {
                     console.error("Auth sync/fetch error:", error);
                     setUserData(null);

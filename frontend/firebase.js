@@ -6,6 +6,7 @@ import {
   signOut
 } from "firebase/auth";
 import { getStorage } from "firebase/storage";
+import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDpSNcoZbtShFO4OGsPb2tT3danDmZlI2k",
@@ -20,11 +21,13 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const storage = getStorage(app);
+const db = getFirestore(app);
 
 export { 
   auth, 
   GoogleAuthProvider, 
   signInWithPopup, 
   signOut, 
-  storage
+  storage,
+  db
 };

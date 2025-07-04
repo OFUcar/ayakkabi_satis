@@ -58,6 +58,8 @@ import CartModal from '../components/CartModal';
 import styles from '../styles/Home.module.css';
 import { useRouter } from 'next/router';
 import NextLink from 'next/link';
+import { API_ENDPOINTS } from '../config/api';
+import { productService, categoryService } from '../services/firestoreService';
 
 const brands = ['Nike', 'Adidas', 'Puma', 'Converse', 'Vans', 'New Balance'];
 const types = ['Spor Ayakkabı', 'Koşu Ayakkabısı', 'Günlük Ayakkabı', 'Skate Ayakkabısı'];
@@ -121,8 +123,7 @@ export default function Home() {
     const fetchProducts = async () => {
       setLoadingProducts(true);
       try {
-        const response = await fetch('http://localhost:5000/api/products');
-        const data = await response.json();
+        const data = await productService.getAllProducts();
         setProducts(data);
       } catch (err) {
         setProducts([]);
@@ -136,11 +137,8 @@ export default function Home() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/categories');
-        if (response.ok) {
-          const data = await response.json();
-          setCategories([{ id: 'all', name: 'Tümü', icon: '👟' }, ...data.map(cat => ({ ...cat, icon: '👟' }))]);
-        }
+        const data = await categoryService.getAllCategories();
+        setCategories([{ id: 'all', name: 'Tümü', icon: '👟' }, ...data.map(cat => ({ ...cat, icon: '👟' }))]);
       } catch (err) {
         setCategories([{ id: 'all', name: 'Tümü', icon: '👟' }]);
       }

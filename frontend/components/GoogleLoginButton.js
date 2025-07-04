@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { auth, GoogleAuthProvider, signInWithPopup, signOut } from "../firebase";
+import { userService } from '../services/firestoreService';
+import { API_ENDPOINTS } from '../config/api';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
@@ -22,17 +24,11 @@ export default function GoogleLoginButton() {
       const result = await signInWithPopup(auth, provider);
       setUser(result.user);
       
-      // Kullanıcıyı backend'e kaydet
-      await fetch("http://localhost:5000/api/users/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: result.user.displayName,
-          email: result.user.email,
-          provider: "google",
-          providerId: result.user.uid,
-          role: "user"
-        })
+      // Kullanıcıyı Firestore'a kaydet
+      await userService.createUser(result.user.uid, {
+        email: result.user.email,
+        displayName: result.user.displayName,
+        role: "user"
       });
       
       setMessage({ type: 'success', text: 'Başarıyla giriş yapıldı!' });
