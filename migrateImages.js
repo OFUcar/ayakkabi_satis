@@ -5,7 +5,7 @@ const fetch = require('node-fetch');
 
 admin.initializeApp({
   credential: admin.credential.cert(require('./firebaseServiceAccount.json')),
-  storageBucket: "ayakkabi-satis-07.appspot.com"
+  storageBucket: "ayakkabi-satis-07.firebasestorage.app"
 });
 
 const db = admin.firestore();

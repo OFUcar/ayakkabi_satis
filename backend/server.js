@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 5000;
 const serviceAccount = require('./firebaseServiceAccount.json');
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  storageBucket: "ayakkabi-satis-07.appspot.com"
+  storageBucket: "ayakkabi-satis-07.firebasestorage.app"
 });
 
 const db = admin.firestore();

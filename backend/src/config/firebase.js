@@ -4,7 +4,7 @@ const serviceAccount = require('../../firebaseServiceAccount.json');
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   databaseURL: "https://<proje-id>.firebaseio.com",
-  storageBucket: "ayakkabi-satis-07.appspot.com"
+  storageBucket: "ayakkabi-satis-07.firebasestorage.app"
 });
 
 const db = admin.firestore();

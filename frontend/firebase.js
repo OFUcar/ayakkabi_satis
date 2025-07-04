@@ -12,7 +12,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyDpSNcoZbtShFO4OGsPb2tT3danDmZlI2k",
   authDomain: "ayakkabi-satis-07.firebaseapp.com",
   projectId: "ayakkabi-satis-07",
-  storageBucket: "ayakkabi-satis-07.appspot.com",
+  storageBucket: "ayakkabi-satis-07.firebasestorage.app",
   messagingSenderId: "1009213623238",
   appId: "1:1009213623238:web:5fbf99989376c9dc5a00c7",
   measurementId: "G-JGP3ECZ72S"
