@@ -82,10 +82,10 @@ export default function AuthModal({ open, onClose }) {
       }}
     >
       <DialogTitle className={styles.modalHeader}>
-        <Typography variant="h5" className={styles.modalTitle}>
+        <Typography variant="h5" component="div" className={styles.modalTitle}>
           {user ? 'Hesap Bilgileri' : 'Hoş Geldiniz'}
         </Typography>
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" component="div" color="text.secondary">
           {user ? 'Hesap ayarlarınızı yönetin' : 'Hesabınıza giriş yapın veya yeni hesap oluşturun'}
         </Typography>
         <IconButton

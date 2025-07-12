@@ -15,6 +15,7 @@ const ProductsPage = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [mounted, setMounted] = useState(false);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -24,9 +25,16 @@ const ProductsPage = () => {
   const [selectedIds, setSelectedIds] = useState([]);
   const [discountLoading, setDiscountLoading] = useState(false);
 
+  // Component mounting kontrolü
   useEffect(() => {
-    fetchProducts();
-  }, [user]);
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mounted && user) {
+      fetchProducts();
+    }
+  }, [user, mounted]);
 
   const fetchProducts = async () => {
     try {
@@ -213,7 +221,78 @@ const ProductsPage = () => {
           İndirim
         </Button>
       </Box>
-      <Box sx={{ height: 650, width: '100%', backgroundColor: '#fff', borderRadius: 2 }}>
+      <Box sx={{ 
+        height: 650, 
+        width: '100%', 
+        backgroundColor: '#fff', 
+        borderRadius: 2,
+        '& .MuiDataGrid-root': {
+          border: '1px solid #e0e0e0',
+          '& .MuiDataGrid-cell': {
+            color: '#333',
+            borderBottom: '1px solid #f0f0f0',
+          },
+          '& .MuiDataGrid-columnHeaders': {
+            backgroundColor: '#f8f9fa',
+            color: '#333',
+            fontWeight: 600,
+            borderBottom: '2px solid #e0e0e0',
+          },
+          '& .MuiDataGrid-columnHeaderTitle': {
+            color: '#333',
+            fontWeight: 600,
+          },
+          '& .MuiDataGrid-row': {
+            '&:hover': {
+              backgroundColor: '#f5f5f5',
+            },
+            '&.Mui-selected': {
+              backgroundColor: '#e3f2fd',
+              '&:hover': {
+                backgroundColor: '#bbdefb',
+              },
+            },
+          },
+          '& .MuiDataGrid-footerContainer': {
+            backgroundColor: '#f8f9fa',
+            borderTop: '2px solid #e0e0e0',
+            color: '#333',
+          },
+          '& .MuiTablePagination-root': {
+            color: '#333',
+          },
+          '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+            color: '#333',
+          },
+          '& .MuiDataGrid-toolbarContainer': {
+            backgroundColor: '#f8f9fa',
+            borderBottom: '1px solid #e0e0e0',
+            padding: '8px 16px',
+            '& .MuiButton-root': {
+              color: '#333',
+            },
+            '& .MuiFormControl-root': {
+              '& .MuiInputLabel-root': {
+                color: '#666',
+              },
+              '& .MuiOutlinedInput-root': {
+                '& fieldset': {
+                  borderColor: '#e0e0e0',
+                },
+                '&:hover fieldset': {
+                  borderColor: '#333',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: '#1976d2',
+                },
+                '& input': {
+                  color: '#333',
+                },
+              },
+            },
+          },
+        },
+      }}>
         <DataGrid
           rows={products}
           columns={columns}

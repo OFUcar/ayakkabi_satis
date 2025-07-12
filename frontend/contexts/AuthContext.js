@@ -73,7 +73,10 @@ export const AuthProvider = ({ children }) => {
         const provider = new GoogleAuthProvider();
         try {
             await signInWithPopup(auth, provider);
-            router.push('/');
+            // Router push işlemini güvenli hale getir
+            router.push('/').catch(err => {
+                console.warn('Router navigation error:', err);
+            });
         } catch (error) {
             console.error("Google ile giriş hatası", error);
             throw error;
@@ -86,7 +89,9 @@ export const AuthProvider = ({ children }) => {
             // Firebase Auth profiline displayName'i ekle
             await updateProfile(userCredential.user, { displayName });
             // Geri kalanı onAuthStateChanged tetikleyecek ve senkronizasyonu yapacak.
-            router.push('/');
+            router.push('/').catch(err => {
+                console.warn('Router navigation error:', err);
+            });
         } catch (error) {
             console.error("E-posta ile kayıt hatası", error);
             throw error;
@@ -96,7 +101,9 @@ export const AuthProvider = ({ children }) => {
     const signInWithEmail = async (email, password) => {
         try {
             await signInWithEmailAndPassword(auth, email, password);
-            router.push('/');
+            router.push('/').catch(err => {
+                console.warn('Router navigation error:', err);
+            });
         } catch (error) {
             console.error("E-posta ile giriş hatası", error);
             throw error;
@@ -106,7 +113,9 @@ export const AuthProvider = ({ children }) => {
     const signOut = async () => {
         await firebaseSignOut(auth);
         setUserData(null); // userData'yı temizle
-        router.push('/');
+        router.push('/').catch(err => {
+            console.warn('Router navigation error:', err);
+        });
     };
     
     const value = {

@@ -19,9 +19,12 @@ import {
   ShoppingCart as ShoppingCartIcon,
   Inventory as InventoryIcon,
   People as PeopleIcon,
-  AttachMoney as MoneyIcon
+  AttachMoney as MoneyIcon,
+  Warning as WarningIcon,
+  CheckCircle as CheckCircleIcon
 } from '@mui/icons-material';
 import AdminLayout from '../../components/admin/AdminLayout';
+import StockAlerts from '../../components/admin/StockAlerts';
 import { useAuth } from '../../contexts/AuthContext';
 import { getDocs, collection, query, orderBy, limit } from "firebase/firestore";
 import { db } from "../../firebase";
@@ -65,69 +68,119 @@ const AdminDashboard = () => {
     totalSales: 0,
     totalOrders: 0,
     totalProducts: 0,
-    totalCustomers: 0
+    totalCustomers: 0,
+    totalStock: 0,
+    lowStockItems: 0,
+    outOfStockItems: 0
   });
   const [recentOrders, setRecentOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+  }, [refreshKey]);
+
+  const handleStockUpdate = () => {
+    setRefreshKey(prev => prev + 1);
+  };
 
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
       // Firestore'dan verileri çek
-      const productsSnap = await getDocs(collection(db, "products"));
-      const ordersSnap = await getDocs(collection(db, "orders"));
-      const usersSnap = await getDocs(collection(db, "users"));
+      const [productsSnap, ordersSnap, usersSnap] = await Promise.all([
+        getDocs(collection(db, "products")),
+        getDocs(collection(db, "orders")),
+        getDocs(collection(db, "users"))
+      ]);
 
-      setStats({
-        totalSales: ordersSnap.docs.reduce((sum, doc) => sum + (doc.data().total || 0), 0),
-        totalOrders: ordersSnap.size,
-        totalProducts: productsSnap.size,
-        totalCustomers: usersSnap.size
+      // Gerçek verilerden istatistikleri hesapla
+      const orders = ordersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const products = productsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const users = usersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      const totalSales = orders.reduce((sum, order) => sum + (order.total || 0), 0);
+      const totalOrders = orders.length;
+      const totalProducts = products.filter(p => p.isActive !== false).length;
+      const totalCustomers = users.filter(u => u.role !== 'admin').length;
+
+      // Stok hesaplamaları
+      let totalStock = 0;
+      let lowStockItems = 0;
+      let outOfStockItems = 0;
+
+      products.forEach(product => {
+        if (product.isActive === false) return;
+        
+        let productStock = 0;
+        if (product.stock) {
+          if (typeof product.stock === 'object') {
+            // Varyant stokları topla
+            productStock = Object.values(product.stock).reduce((sum, qty) => {
+              return sum + Number(qty || 0);
+            }, 0);
+          } else {
+            productStock = Number(product.stock) || 0;
+          }
+        }
+        
+        totalStock += productStock;
+        
+        // Stok durumu analizi
+        if (productStock === 0) {
+          outOfStockItems++;
+        } else if (productStock <= 5) {
+          lowStockItems++;
+        }
       });
 
-      // Son siparişler
-      const recentOrdersQuery = query(collection(db, "orders"), orderBy("createdAt", "desc"), limit(5));
-      const recentOrdersSnap = await getDocs(recentOrdersQuery);
-      setRecentOrders(recentOrdersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      setStats({
+        totalSales,
+        totalOrders,
+        totalProducts,
+        totalCustomers,
+        totalStock,
+        lowStockItems,
+        outOfStockItems
+      });
+
+      // Son siparişleri tarih sırasına göre sırala ve formatla
+      const sortedOrders = orders
+        .filter(order => order.createdAt) // Sadece tarih bilgisi olan siparişler
+        .sort((a, b) => {
+          const aDate = new Date(a.createdAt.seconds ? a.createdAt.seconds * 1000 : a.createdAt);
+          const bDate = new Date(b.createdAt.seconds ? b.createdAt.seconds * 1000 : b.createdAt);
+          return bDate - aDate;
+        })
+        .slice(0, 5)
+        .map(order => ({
+          ...order,
+          // Tarih formatını düzelt
+          date: order.createdAt.seconds ? 
+            new Date(order.createdAt.seconds * 1000).toISOString().split('T')[0] : 
+            order.createdAt,
+          // Müşteri adını düzelt
+          customerName: order.customerName || order.shippingAddress?.fullName || 'Anonim Müşteri'
+        }));
+
+      setRecentOrders(sortedOrders);
       setError(null);
     } catch (error) {
       console.error('Dashboard veri getirme hatası:', error);
       setError('Veriler yüklenirken hata oluştu');
-      // Demo veriler
+      // Hata durumunda boş veriler
       setStats({
-        totalSales: 12450,
-        totalOrders: 156,
-        totalProducts: 89,
-        totalCustomers: 234
+        totalSales: 0,
+        totalOrders: 0,
+        totalProducts: 0,
+        totalCustomers: 0,
+        totalStock: 0,
+        lowStockItems: 0,
+        outOfStockItems: 0
       });
-      setRecentOrders([
-        {
-          id: '1',
-          customerName: 'Ahmet Yılmaz',
-          total: 1299.99,
-          status: 'pending',
-          date: '2024-01-15'
-        },
-        {
-          id: '2',
-          customerName: 'Ayşe Demir',
-          total: 899.99,
-          status: 'completed',
-          date: '2024-01-14'
-        },
-        {
-          id: '3',
-          customerName: 'Mehmet Kaya',
-          total: 1899.99,
-          status: 'shipped',
-          date: '2024-01-13'
-        }
-      ]);
+      setRecentOrders([]);
     } finally {
       setLoading(false);
     }
@@ -218,43 +271,87 @@ const AdminDashboard = () => {
             />
           </Grid>
         </Grid>
+
+        {/* Stok Durumu Kartları */}
+        <Grid container spacing={3} mb={4}>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard 
+              title="Toplam Stok" 
+              value={stats.totalStock.toLocaleString('tr-TR')} 
+              icon={<CheckCircleIcon />}
+              color="#2e7d32"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard 
+              title="Düşük Stok (≤5)" 
+              value={stats.lowStockItems} 
+              icon={<WarningIcon />}
+              color="#ff9800"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard 
+              title="Stokta Yok" 
+              value={stats.outOfStockItems} 
+              icon={<WarningIcon />}
+              color="#f44336"
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard 
+              title="Stok Yeterliliği" 
+              value={`${((stats.totalProducts - stats.outOfStockItems) / Math.max(stats.totalProducts, 1) * 100).toFixed(0)}%`} 
+              icon={<CheckCircleIcon />}
+              color="#4caf50"
+            />
+          </Grid>
+        </Grid>
         
-        {/* Son Siparişler */}
-        <Paper sx={{ p: 3, borderRadius: 3, boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
-          <Typography variant="h6" gutterBottom fontWeight={600} mb={3}>
-            Son Siparişler
-          </Typography>
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell fontWeight={600}>Sipariş No</TableCell>
-                  <TableCell fontWeight={600}>Müşteri</TableCell>
-                  <TableCell fontWeight={600}>Tutar</TableCell>
-                  <TableCell fontWeight={600}>Durum</TableCell>
-                  <TableCell fontWeight={600}>Tarih</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {recentOrders.map((order) => (
-                  <TableRow key={order.id} hover>
-                    <TableCell>#{order.id}</TableCell>
-                    <TableCell>{order.customerName}</TableCell>
-                    <TableCell fontWeight={600}>{formatPrice(order.total)}</TableCell>
-                    <TableCell>
-                      <Chip 
-                        label={getStatusText(order.status)} 
-                        color={getStatusColor(order.status)}
-                        size="small"
-                      />
-                    </TableCell>
-                    <TableCell>{formatDate(order.date)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Paper>
+        {/* Stok Uyarıları ve Son Siparişler */}
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={6}>
+            <StockAlerts onStockUpdate={handleStockUpdate} />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            {/* Son Siparişler */}
+            <Paper sx={{ p: 3, borderRadius: 3, boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
+              <Typography variant="h6" gutterBottom fontWeight={600} mb={3}>
+                Son Siparişler
+              </Typography>
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell fontWeight={600}>Sipariş No</TableCell>
+                      <TableCell fontWeight={600}>Müşteri</TableCell>
+                      <TableCell fontWeight={600}>Tutar</TableCell>
+                      <TableCell fontWeight={600}>Durum</TableCell>
+                      <TableCell fontWeight={600}>Tarih</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {recentOrders.map((order) => (
+                      <TableRow key={order.id} hover>
+                        <TableCell>#{order.id}</TableCell>
+                        <TableCell>{order.customerName}</TableCell>
+                        <TableCell fontWeight={600}>{formatPrice(order.total)}</TableCell>
+                        <TableCell>
+                          <Chip 
+                            label={getStatusText(order.status)} 
+                            color={getStatusColor(order.status)}
+                            size="small"
+                          />
+                        </TableCell>
+                        <TableCell>{formatDate(order.date)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
+          </Grid>
+        </Grid>
       </Box>
     </AdminLayout>
   );

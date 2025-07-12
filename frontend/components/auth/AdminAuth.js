@@ -17,9 +17,19 @@ const AdminAuth = ({ children }) => {
   }
 
   if (userData?.role !== 'admin') {
-    if (typeof window !== 'undefined') {
-      router.replace('/');
-    }
+    // Router işlemini güvenli hale getir
+    React.useEffect(() => {
+      if (typeof window !== 'undefined') {
+        const timer = setTimeout(() => {
+          router.replace('/').catch(err => {
+            console.warn('Router navigation error:', err);
+            window.location.href = '/';
+          });
+        }, 100);
+        return () => clearTimeout(timer);
+      }
+    }, [router]);
+
     return (
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column' }}>
             <Typography variant="h5" color="error">Erişim Reddedildi</Typography>

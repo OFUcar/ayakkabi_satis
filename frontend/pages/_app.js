@@ -4,37 +4,60 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { AuthProvider } from '../contexts/AuthContext';
 import { CartProvider } from '../contexts/CartContext';
 import AdminAuth from '../components/auth/AdminAuth';
+import ErrorBoundary from '../components/ErrorBoundary';
 import { useRouter } from 'next/router';
+import '../styles/globals.css';
 
-// Basit tema yapılandırması
+// Lüks tema yapılandırması
 const theme = createTheme({
   palette: {
+    mode: 'dark',
     primary: {
-      main: '#6c757d',
+      main: '#f5b041',
     },
     secondary: {
-      main: '#495057',
+      main: '#e89611',
     },
     background: {
-      default: '#f8f9fa',
+      default: '#1a1a1a',
+      paper: '#3d3d3d',
+    },
+    text: {
+      primary: '#ffffff',
+      secondary: '#f5b041',
     },
   },
   typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+    h1: {
+      fontFamily: '"Playfair Display", serif',
+      fontWeight: 700,
+    },
+    h2: {
+      fontFamily: '"Playfair Display", serif',
+      fontWeight: 600,
+    },
+    h3: {
+      fontFamily: '"Playfair Display", serif',
+      fontWeight: 600,
+    },
   },
   components: {
     MuiButton: {
       styleOverrides: {
         root: {
           textTransform: 'none',
-          borderRadius: 8,
+          borderRadius: 25,
+          fontWeight: 600,
         },
       },
     },
     MuiCard: {
       styleOverrides: {
         root: {
-          borderRadius: 12,
+          borderRadius: 16,
+          background: 'linear-gradient(145deg, #3d3d3d 0%, #454545 100%)',
+          border: '1px solid #5d5d5d',
         },
       },
     },
@@ -55,20 +78,22 @@ function MyApp({ Component, pageProps }) {
   }
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <AuthProvider>
-        <CartProvider>
-          {router.pathname.startsWith('/admin') ? (
-            <AdminAuth>
+    <ErrorBoundary>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <AuthProvider>
+          <CartProvider>
+            {router.pathname.startsWith('/admin') ? (
+              <AdminAuth>
+                <Component {...pageProps} />
+              </AdminAuth>
+            ) : (
               <Component {...pageProps} />
-            </AdminAuth>
-          ) : (
-            <Component {...pageProps} />
-          )}
-        </CartProvider>
-      </AuthProvider>
-    </ThemeProvider>
+            )}
+          </CartProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 
