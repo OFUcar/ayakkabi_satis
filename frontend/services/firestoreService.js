@@ -278,6 +278,16 @@ export const userService = {
 
   async createUser(uid, userData) {
     try {
+      // Önce kullanıcı var mı kontrol et
+      const existingUser = await this.getUserById(uid);
+      
+      if (existingUser) {
+        // Kullanıcı zaten varsa, sadece eksik alanları güncelle
+        console.log('Kullanıcı zaten mevcut, güncelleme yapılmıyor:', uid);
+        return existingUser;
+      }
+      
+      // Kullanıcı yoksa yeni oluştur
       await setDoc(doc(db, 'users', uid), {
         ...userData,
         createdAt: serverTimestamp(),

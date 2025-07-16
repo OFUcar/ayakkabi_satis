@@ -42,15 +42,23 @@ export const AuthProvider = ({ children }) => {
                 // Kullanıcı verisini Firestore'dan al
                 try {
                     let userData = await userService.getUserById(user.uid);
+                    console.log("[DEBUG] getUserById sonucu:", userData, "UID:", user.uid);
                     
                     // Eğer kullanıcı Firestore'da yoksa oluştur
                     if (!userData) {
-                        await userService.createUser(user.uid, {
+                        console.log("[DEBUG] Kullanıcı Firestore'da bulunamadı, yeni kullanıcı olarak oluşturuluyor:", user.uid);
+                        
+                        // Sadece yeni kullanıcılar için default role: 'user' ata
+                        const newUserData = {
                             email: user.email,
                             displayName: user.displayName || user.email,
                             role: 'user'
-                        });
+                        };
+                        
+                        await userService.createUser(user.uid, newUserData);
                         userData = await userService.getUserById(user.uid);
+                    } else {
+                        console.log("[DEBUG] Mevcut kullanıcı bulundu, role:", userData.role);
                     }
                     
                     console.log("[DEBUG] Firestore'dan gelen kullanıcı verisi:", userData);
